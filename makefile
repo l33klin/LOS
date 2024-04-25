@@ -3,15 +3,18 @@ AS		= ./build-tools/local/bin/i686-elf-as
 GCC		= ./build-tools/local/bin/i686-elf-gcc
 RM    = rm
 
-.PHONY : build clean all link
+.PHONY : clean all link
 
-all: clean build link
+all: clean link
 
 clean:
 	$(RM) -f *.o *.bin *.elf
 
-build:
-  ./build-tools/local/bin/i686-elf-as boot.s -o boot.o
-  ./build-tools/local/bin/i686-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+boot.o: boot.s
+	$(AS) boot.s -o boot.o
 
-link: ./build-tools/local/bin/i686-elf-gcc -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o -lgcc
+kernel.o: kernel.c
+	$(GCC) -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+
+link: linker.ld boot.o kernel.o
+	$(GCC) -T linker.ld -o myos.bin -ffreestanding -O2 -nostdlib boot.o kernel.o -lgcc
